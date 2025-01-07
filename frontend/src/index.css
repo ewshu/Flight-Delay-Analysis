@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'PP Editorial New';
+  src: url('/fonts/PPEditorialNew-Regular-BF644b214ff145f.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'PP Editorial New Ultrabold';
+  src: url('/fonts/PPEditorialNew-Ultrabold-BF644b21500840c.otf') format('opentype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+:root {
+  --primary-bg: #ffffff;
+  --text-primary: #2d3748;
+}
+
+:root[data-theme='dark'] {
+  --primary-bg: #1a1a2e;
+  --text-primary: #ffffff;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  min-height: 100vh;
+  background-color: var(--primary-bg);
+  font-family: 'PP Editorial New', serif;
+}
+
+.font-ultrabold {
+  font-family: 'PP Editorial New Ultrabold', serif;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
