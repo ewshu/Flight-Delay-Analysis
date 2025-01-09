@@ -107,73 +107,71 @@ const FlightDelayDashboard = () => {
         </div>
 
         {/* Header with Dropdowns */}
-        <div className="bg-white rounded-xl shadow-2xl">
-          <div className="flex items-center justify-center min-h-[200px] p-8">
-            <h1 className="text-4xl font-ultrabold text-gray-800 max-w-4xl">
-              How Late is your flight at{' '}
-              <span className="relative dropdown-container inline-block">
-                <button
-                  className="font-ultrabold text-gray-800 border-b-2 border-gray-300 hover:border-gray-800 pb-1 mx-2 transition-all duration-200"
-                  onClick={() => setData(prev => ({
-                    ...prev,
-                    showAirportDropdown: !prev.showAirportDropdown,
-                    showMonthDropdown: false
-                  }))}
-                >
-                  {currentAirport.name}
-                </button>
-                {data.showAirportDropdown && (
-                  <div className="absolute left-1/2 transform -translate-x-1/2 mt-2 bg-white border border-gray-200 rounded shadow-lg z-50 w-96 max-h-96 overflow-y-auto">
-                    {data.airportList.map(airport => (
-                      <button
-                        key={airport.code}
-                        className="w-full text-left px-4 py-3 hover:bg-gray-50 text-2xl font-ultrabold text-gray-800"
-                        onClick={() => {
-                          setData(prev => ({
-                            ...prev,
-                            selectedAirport: airport.code,
-                            showAirportDropdown: false
-                          }));
-                        }}
-                      >
-                        {airport.name}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </span>
-              {' '}during{' '}
-              <span className="relative dropdown-container inline-block">
-                <button
-                  className="font-ultrabold text-gray-800 border-b-2 border-gray-300 hover:border-gray-800 pb-1 mx-2 transition-all duration-200"
-                  onClick={() => setData(prev => ({
-                    ...prev,
-                    showMonthDropdown: !prev.showMonthDropdown,
-                    showAirportDropdown: false
-                  }))}
-                >
-                  {monthNames[selectedMonth - 1]}
-                </button>
-                {data.showMonthDropdown && (
-                  <div className="absolute left-1/2 transform -translate-x-1/2 mt-2 bg-white border border-gray-200 rounded shadow-lg z-50 w-64">
-                    {monthNames.map((month, index) => (
-                      <button
-                        key={index}
-                        className="w-full text-left px-4 py-3 hover:bg-gray-50 text-2xl font-ultrabold text-gray-800"
-                        onClick={() => {
-                          setSelectedMonth(index + 1);
-                          setData(prev => ({ ...prev, showMonthDropdown: false }));
-                        }}
-                      >
-                        {month}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </span>
-              ?
-            </h1>
-          </div>
+        <div className="bg-white rounded-xl shadow-2xl flex items-center h-[150px]">
+          <h1 className="text-4xl font-ultrabold text-gray-800 px-8 w-full text-center">
+            How Late is your flight at{' '}
+            <span className="relative dropdown-container inline-block">
+              <button
+                className="font-ultrabold text-gray-800 border-b-2 border-gray-300 hover:border-gray-800 pb-1 mx-2 transition-all duration-200"
+                onClick={() => setData(prev => ({
+                  ...prev,
+                  showAirportDropdown: !prev.showAirportDropdown,
+                  showMonthDropdown: false
+                }))}
+              >
+                {currentAirport.name}
+              </button>
+              {data.showAirportDropdown && (
+                <div className="absolute left-1/2 transform -translate-x-1/2 mt-2 bg-white border border-gray-200 rounded shadow-lg z-50 w-96 max-h-96 overflow-y-auto">
+                  {data.airportList.map(airport => (
+                    <button
+                      key={airport.code}
+                      className="w-full text-left px-4 py-3 hover:bg-gray-50 text-2xl font-ultrabold text-gray-800"
+                      onClick={() => {
+                        setData(prev => ({
+                          ...prev,
+                          selectedAirport: airport.code,
+                          showAirportDropdown: false
+                        }));
+                      }}
+                    >
+                      {airport.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </span>
+            {' '}during{' '}
+            <span className="relative dropdown-container inline-block">
+              <button
+                className="font-ultrabold text-gray-800 border-b-2 border-gray-300 hover:border-gray-800 pb-1 mx-2 transition-all duration-200"
+                onClick={() => setData(prev => ({
+                  ...prev,
+                  showMonthDropdown: !prev.showMonthDropdown,
+                  showAirportDropdown: false
+                }))}
+              >
+                {monthNames[selectedMonth - 1]}
+              </button>
+              {data.showMonthDropdown && (
+                <div className="absolute left-1/2 transform -translate-x-1/2 mt-2 bg-white border border-gray-200 rounded shadow-lg z-50 w-64">
+                  {monthNames.map((month, index) => (
+                    <button
+                      key={index}
+                      className="w-full text-left px-4 py-3 hover:bg-gray-50 text-2xl font-ultrabold text-gray-800"
+                      onClick={() => {
+                        setSelectedMonth(index + 1);
+                        setData(prev => ({ ...prev, showMonthDropdown: false }));
+                      }}
+                    >
+                      {month}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </span>
+            ?
+          </h1>
         </div>
 
         {/* Monthly Best Airline */}
