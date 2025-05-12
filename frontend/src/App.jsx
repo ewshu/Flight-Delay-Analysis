@@ -1,10 +1,10 @@
 import React from 'react';
-import FlightDelayDashboard from './FlightDelayDashboard';
+import ModernFlightDelayDashboard from './ModernFlightDelayDashboard';
 
 const App = () => {
   return (
     <div className="min-h-screen">
-      <FlightDelayDashboard />
+      <ModernFlightDelayDashboard />
     </div>
   );
 };

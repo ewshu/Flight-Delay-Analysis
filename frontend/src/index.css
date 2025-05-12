@@ -2,44 +2,64 @@
 @tailwind components;
 @tailwind utilities;
 
-@font-face {
-  font-family: 'PP Editorial New';
-  src: url('/fonts/PPEditorialNew-Regular-BF644b214ff145f.otf') format('opentype');
-  font-weight: normal;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'PP Editorial New Ultrabold';
-  src: url('/fonts/PPEditorialNew-Ultrabold-BF644b21500840c.otf') format('opentype');
-  font-weight: bold;
-  font-style: normal;
-}
-
 :root {
-  --primary-bg: #ffffff;
-  --text-primary: #2d3748;
+  --primary-bg: #f9fafb;
+  --secondary-bg: #ffffff;
+  --primary-text: #1f2937;
+  --secondary-text: #4b5563;
+  --accent-color: #4f46e5;
+  --accent-light: #818cf8;
+  --good-color: #10b981;
+  --warning-color: #f59e0b;
+  --danger-color: #ef4444;
+  --border-color: #e5e7eb;
 }
 
 :root[data-theme='dark'] {
-  --primary-bg: #1a1a2e;
-  --text-primary: #ffffff;
+  --primary-bg: #111827;
+  --secondary-bg: #1f2937;
+  --primary-text: #f9fafb;
+  --secondary-text: #9ca3af;
+  --accent-color: #6366f1;
+  --accent-light: #a5b4fc;
+  --good-color: #34d399;
+  --warning-color: #fbbf24;
+  --danger-color: #f87171;
+  --border-color: #374151;
 }
 
 body {
   margin: 0;
   padding: 0;
-  width: 100vw;
-  min-height: 100vh;
-  background-color: var(--primary-bg);
-  font-family: 'PP Editorial New', serif;
-}
-
-.font-ultrabold {
-  font-family: 'PP Editorial New Ultrabold', serif;
-}
-
-#root {
   width: 100%;
   min-height: 100vh;
+  background-color: var(--primary-bg);
+  color: var(--primary-text);
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Transition effects */
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--primary-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--secondary-text);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-color);
 }
