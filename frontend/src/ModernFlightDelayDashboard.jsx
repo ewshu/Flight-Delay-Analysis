@@ -192,7 +192,7 @@ const ModernFlightDelayDashboard = () => {
       airlines.add(perf.AIRLINE);
     });
 
-    // Get top 3 airlines by total flights
+    // Get top 5 airlines by total flights (increased from 3)
     const topAirlines = Array.from(airlines)
       .map(airline => {
         const flights = airport.monthlyPerformance
@@ -201,7 +201,7 @@ const ModernFlightDelayDashboard = () => {
         return { airline, flights };
       })
       .sort((a, b) => b.flights - a.flights)
-      .slice(0, 3)
+      .slice(0, 5) // Increased from 3 to 5
       .map(item => item.airline);
 
     // Generate monthly data for the top airlines
@@ -313,7 +313,7 @@ const ModernFlightDelayDashboard = () => {
             <h2 className="text-xl font-semibold">Select Airport</h2>
             <button
               onClick={toggleMobileMenu}
-              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="p-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
             >
               <X className="w-6 h-6" />
             </button>
@@ -326,9 +326,9 @@ const ModernFlightDelayDashboard = () => {
                   selectAirport(airport.code);
                   toggleMobileMenu();
                 }}
-                className={`w-full text-left mb-2 p-3 rounded-lg flex items-center ${data.selectedAirport === airport.code ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                className={`w-full text-left mb-3 p-4 rounded-lg flex items-center ${data.selectedAirport === airport.code ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}
               >
-                <MapPin className="mr-2 w-5 h-5" />
+                <MapPin className="mr-3 w-5 h-5" />
                 <div>
                   <div className="font-medium">{airport.name}</div>
                   <div className="text-sm text-gray-500 dark:text-gray-400">{airport.code}</div>
@@ -380,10 +380,10 @@ const ModernFlightDelayDashboard = () => {
               </button>
             </div>
 
-            <div className="lg:hidden flex items-center">
+            <div className="lg:hidden flex items-center space-x-3">
               <button
                 onClick={toggleTheme}
-                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 mr-2"
+                className="p-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
                 aria-label="Toggle theme"
               >
                 {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
@@ -391,7 +391,7 @@ const ModernFlightDelayDashboard = () => {
 
               <button
                 onClick={toggleMobileMenu}
-                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="p-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
                 aria-label="Open menu"
               >
                 <Layers className="w-6 h-6" />
@@ -401,12 +401,12 @@ const ModernFlightDelayDashboard = () => {
 
           {/* Mobile month selector */}
           <div className="lg:hidden pb-4 flex items-center justify-between">
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3">
               <Calendar className="w-5 h-5 text-indigo-500" />
               <select
                 value={data.selectedMonth}
                 onChange={(e) => selectMonth(parseInt(e.target.value))}
-                className="px-3 py-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
+                className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
               >
                 {MONTHS.map((month, index) => (
                   <option key={index} value={index + 1}>{month}</option>
@@ -419,13 +419,13 @@ const ModernFlightDelayDashboard = () => {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Airport heading */}
-        <div className="mb-6">
+        <div className="mb-8">
           <h2 className="text-3xl font-bold">{currentAirport.name} ({data.selectedAirport})</h2>
-          <p className="text-gray-500 dark:text-gray-400">Flight delay statistics for {MONTHS[data.selectedMonth - 1]} ({data.selectedMonth})</p>
+          <p className="text-gray-500 dark:text-gray-400 mt-2">Flight delay statistics for {MONTHS[data.selectedMonth - 1]} ({data.selectedMonth})</p>
         </div>
 
         {/* Airport map */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
           {/* Best airline for the month - now on the left */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg order-1 lg:order-1 lg:col-span-2">
             <div className="p-4 border-b border-gray-200 dark:border-gray-700">
@@ -571,7 +571,7 @@ const ModernFlightDelayDashboard = () => {
         </div>
 
         {/* Performance statistics */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           {/* Top performing airlines */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg">
             <div className="p-4 border-b border-gray-200 dark:border-gray-700">
@@ -654,28 +654,46 @@ const ModernFlightDelayDashboard = () => {
               </p>
             </div>
 
-            <div className="p-4 h-64 lg:h-72">
+            <div className="p-4 h-72 lg:h-96">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={monthlyTrends} margin={{ top: 20, right: 30, left: 10, bottom: 20 }}>
+                <LineChart data={monthlyTrends} margin={{ top: 20, right: 30, left: 10, bottom: 40 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#374151' : '#e0e0e0'} />
                   <XAxis
                     dataKey="monthNum"
                     tickFormatter={(tick) => MONTHS[tick-1].substring(0, 3)}
                     stroke={theme === 'dark' ? '#9ca3af' : '#718096'}
                     tick={{ fontSize: 12 }}
+                    dy={10}
                   />
                   <YAxis
                     stroke={theme === 'dark' ? '#9ca3af' : '#718096'}
-                    label={{ value: 'Avg Delay (min)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fontSize: 12 }, fill: theme === 'dark' ? '#9ca3af' : '#718096' }}
+                    label={{ 
+                      value: 'Avg Delay (min)', 
+                      angle: -90, 
+                      position: 'insideLeft', 
+                      style: { textAnchor: 'middle', fontSize: 12 }, 
+                      fill: theme === 'dark' ? '#9ca3af' : '#718096',
+                      dy: -10
+                    }}
                   />
                   <Tooltip
-                    contentStyle={{ backgroundColor: theme === 'dark' ? '#1f2937' : '#ffffff', borderColor: theme === 'dark' ? '#374151' : '#e2e8f0' }}
+                    contentStyle={{ 
+                      backgroundColor: theme === 'dark' ? '#1f2937' : '#ffffff', 
+                      borderColor: theme === 'dark' ? '#374151' : '#e2e8f0',
+                      padding: '12px',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+                    }}
                     itemStyle={{ color: theme === 'dark' ? '#e2e8f0' : '#1a202c' }}
-                    labelStyle={{ fontWeight: 'bold', marginBottom: '5px' }}
+                    labelStyle={{ fontWeight: 'bold', marginBottom: '8px' }}
                     formatter={(value) => [`${value?.toFixed(1) || 'N/A'} min`, 'Avg Delay']}
                     labelFormatter={(label) => MONTHS[label-1]}
                   />
-                  <Legend verticalAlign="bottom" height={36} />
+                  <Legend 
+                    verticalAlign="bottom" 
+                    height={60}
+                    wrapperStyle={{ paddingTop: '20px' }}
+                  />
                   {topTrendAirlines.map((airline, index) => (
                     <Line
                       key={airline}
@@ -699,7 +717,7 @@ const ModernFlightDelayDashboard = () => {
         {/* Removed as per user request */}
       </main>
 
-      <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 py-4">
+      <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <p className="text-center text-gray-500 dark:text-gray-400 text-sm">
             Flight Delay Dashboard | Data showing airline departure performance across major US airports
