@@ -192,7 +192,7 @@ const ModernFlightDelayDashboard = () => {
       airlines.add(perf.AIRLINE);
     });
 
-    // Get top 5 airlines by total flights (increased from 3)
+    // Get top 3 airlines by total flights
     const topAirlines = Array.from(airlines)
       .map(airline => {
         const flights = airport.monthlyPerformance
@@ -201,23 +201,26 @@ const ModernFlightDelayDashboard = () => {
         return { airline, flights };
       })
       .sort((a, b) => b.flights - a.flights)
-      .slice(0, 5) // Increased from 3 to 5
+      .slice(0, 3)
       .map(item => item.airline);
 
-    // Generate monthly data for the top airlines
-    const monthlyData = MONTHS.map((_, index) => {
-      const monthNum = index + 1;
-      const month = MONTHS[index];
-
-      const obj = { month, monthNum };
+    // Generate quarterly data for the top airlines
+    const quarterlyData = [
+      { quarter: 'Q1', months: [1, 2, 3] },
+      { quarter: 'Q2', months: [4, 5, 6] },
+      { quarter: 'Q3', months: [7, 8, 9] },
+      { quarter: 'Q4', months: [10, 11, 12] }
+    ].map(quarter => {
+      const obj = { quarter: quarter.quarter };
 
       topAirlines.forEach(airline => {
-        const performances = airport.monthlyPerformance.filter(
-          perf => parseInt(perf.MONTH) === monthNum && perf.AIRLINE === airline
+        const quarterPerformances = airport.monthlyPerformance.filter(
+          perf => quarter.months.includes(parseInt(perf.MONTH)) && perf.AIRLINE === airline
         );
 
-        if (performances.length > 0) {
-          obj[airline] = performances[0].AVG_DEP_DELAY;
+        if (quarterPerformances.length > 0) {
+          const avgDelay = quarterPerformances.reduce((sum, perf) => sum + perf.AVG_DEP_DELAY, 0) / quarterPerformances.length;
+          obj[airline] = avgDelay;
         } else {
           obj[airline] = 0;
         }
@@ -226,7 +229,7 @@ const ModernFlightDelayDashboard = () => {
       return obj;
     });
 
-    return { trends: monthlyData, airlines: topAirlines };
+    return { trends: quarterlyData, airlines: topAirlines };
   };
 
   const getAirportDelayMap = () => {
@@ -647,10 +650,10 @@ const ModernFlightDelayDashboard = () => {
             <div className="p-4 border-b border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-semibold flex items-center">
                 <Clock className="w-5 h-5 mr-2 text-indigo-500" />
-                Monthly Delay Trends
+                Quarterly Delay Trends
               </h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Average delays by month for top carriers
+                Average delays by quarter for top carriers
               </p>
             </div>
 
@@ -659,8 +662,7 @@ const ModernFlightDelayDashboard = () => {
                 <LineChart data={monthlyTrends} margin={{ top: 20, right: 30, left: 10, bottom: 40 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#374151' : '#e0e0e0'} />
                   <XAxis
-                    dataKey="monthNum"
-                    tickFormatter={(tick) => MONTHS[tick-1].substring(0, 3)}
+                    dataKey="quarter"
                     stroke={theme === 'dark' ? '#9ca3af' : '#718096'}
                     tick={{ fontSize: 12 }}
                     dy={10}
@@ -687,12 +689,7 @@ const ModernFlightDelayDashboard = () => {
                     itemStyle={{ color: theme === 'dark' ? '#e2e8f0' : '#1a202c' }}
                     labelStyle={{ fontWeight: 'bold', marginBottom: '8px' }}
                     formatter={(value) => [`${value?.toFixed(1) || 'N/A'} min`, 'Avg Delay']}
-                    labelFormatter={(label) => MONTHS[label-1]}
-                  />
-                  <Legend 
-                    verticalAlign="bottom" 
-                    height={60}
-                    wrapperStyle={{ paddingTop: '20px' }}
+                    labelFormatter={(label) => `Quarter ${label}`}
                   />
                   {topTrendAirlines.map((airline, index) => (
                     <Line
@@ -709,6 +706,21 @@ const ModernFlightDelayDashboard = () => {
                   ))}
                 </LineChart>
               </ResponsiveContainer>
+            </div>
+
+            {/* Custom Legend */}
+            <div className="px-4 pb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {topTrendAirlines.map((airline, index) => (
+                  <div key={airline} className="flex items-center space-x-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+                    <div 
+                      className="w-3 h-3 rounded-full" 
+                      style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                    />
+                    <span className="text-sm font-medium truncate">{formatAirlineName(airline)}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
