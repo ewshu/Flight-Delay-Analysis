@@ -56,31 +56,13 @@ const ModernFlightDelayDashboard = () => {
     airports: {},
     airportList: [],
     selectedAirport: 'ORD',
-    selectedRegion: 'All',
     selectedMonth: new Date().getMonth() + 1,
-    showTooltip: null,
-    showMobileMenu: false,
-    filterOpen: false
-  });
-
-  const [theme, setTheme] = useState(() => {
-    // Check if user prefers dark mode
-    if (typeof window !== 'undefined' && window.matchMedia) {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-    return 'light';
+    showAirportDropdown: false,
+    showMonthDropdown: false,
+    showMobileMenu: false
   });
 
   // Effects
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [theme]);
-
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -111,50 +93,57 @@ const ModernFlightDelayDashboard = () => {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (!event.target.closest('.filter-panel') && !event.target.closest('.filter-button')) {
-        setData({...data, filterOpen: false});
+      if (!event.target.closest('button')) {
+        setData({...data, showAirportDropdown: false, showMonthDropdown: false});
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [data]);
+    if (data.showAirportDropdown || data.showMonthDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [data.showAirportDropdown, data.showMonthDropdown]);
 
   // Methods
   const selectAirport = (code) => {
-    setData({...data, selectedAirport: code});
+    setData(prev => ({
+      ...prev,
+      selectedAirport: code,
+      showAirportDropdown: false
+    }));
   };
 
   const selectMonth = (month) => {
-    setData({...data, selectedMonth: month});
+    setData(prev => ({
+      ...prev,
+      selectedMonth: month,
+      showMonthDropdown: false
+    }));
   };
 
-  const setRegionFilter = (region) => {
-    setData({...data, selectedRegion: region});
+  const toggleAirportDropdown = () => {
+    setData(prev => ({
+      ...prev,
+      showAirportDropdown: !prev.showAirportDropdown,
+      showMonthDropdown: false
+    }));
+  };
+
+  const toggleMonthDropdown = () => {
+    setData(prev => ({
+      ...prev,
+      showMonthDropdown: !prev.showMonthDropdown,
+      showAirportDropdown: false
+    }));
   };
 
   const toggleMobileMenu = () => {
     setData({...data, showMobileMenu: !data.showMobileMenu});
   };
 
-  const toggleFilterPanel = () => {
-    setData({...data, filterOpen: !data.filterOpen});
-  };
-
-  const toggleTheme = () => {
-    setTheme(theme === 'light' ? 'dark' : 'light');
-  };
-
   // Data processing functions
   const getFilteredAirports = () => {
-    if (data.selectedRegion === 'All') {
-      return data.airportList;
-    }
-
-    return data.airportList.filter(airport => {
-      const coords = US_AIRPORT_COORDINATES[airport.code];
-      return coords && coords.region === data.selectedRegion;
-    });
+    return data.airportList;
   };
 
   const getTopPerformingAirlines = (airportCode, limit = 5) => {
@@ -260,11 +249,11 @@ const ModernFlightDelayDashboard = () => {
   // Render loading state
   if (data.loading) {
     return (
-      <div className="flex items-center justify-center h-screen w-full bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+      <div className="flex items-center justify-center h-screen w-full bg-gray-50 text-gray-800">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent mb-4"></div>
           <h2 className="text-2xl font-semibold">Loading flight delay data...</h2>
-          <p className="text-gray-500 dark:text-gray-400 mt-2">Retrieving airport and airline performance information</p>
+          <p className="text-gray-500 mt-2">Retrieving airport and airline performance information</p>
         </div>
       </div>
     );
@@ -273,15 +262,15 @@ const ModernFlightDelayDashboard = () => {
   // Render error state
   if (data.error || !data.airports[data.selectedAirport]?.airlinePerformance) {
     return (
-      <div className="flex items-center justify-center h-screen w-full bg-gray-50 dark:bg-gray-900">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-8 max-w-md">
+      <div className="flex items-center justify-center h-screen w-full bg-gray-50">
+        <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md">
           <div className="flex items-center justify-center">
             <div className="text-center">
               <AlertTriangle className="mx-auto h-16 w-16 text-red-500 mb-4" />
-              <h2 className="text-2xl font-semibold text-red-600 dark:text-red-400">
+              <h2 className="text-2xl font-semibold text-red-600">
                 {data.error || 'No data available for the selected airport'}
               </h2>
-              <p className="text-gray-500 dark:text-gray-400 mt-4">
+              <p className="text-gray-500 mt-4">
                 Please try again later or select a different airport
               </p>
               <button
@@ -308,15 +297,15 @@ const ModernFlightDelayDashboard = () => {
   const filteredAirports = getFilteredAirports();
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+    <div className="min-h-screen bg-white text-gray-900">
       {/* Mobile menu */}
       <div className={`lg:hidden fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50 transition-opacity ${data.showMobileMenu ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-        <div className={`absolute top-0 right-0 w-4/5 h-full bg-white dark:bg-gray-800 transform transition-transform ${data.showMobileMenu ? 'translate-x-0' : 'translate-x-full'} overflow-y-auto`}>
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+        <div className={`absolute top-0 right-0 w-4/5 h-full bg-white transform transition-transform ${data.showMobileMenu ? 'translate-x-0' : 'translate-x-full'} overflow-y-auto`}>
+          <div className="p-4 border-b border-gray-200 flex justify-between items-center">
             <h2 className="text-xl font-semibold">Select Airport</h2>
             <button
               onClick={toggleMobileMenu}
-              className="p-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="p-3 rounded-full hover:bg-gray-100"
             >
               <X className="w-6 h-6" />
             </button>
@@ -329,12 +318,12 @@ const ModernFlightDelayDashboard = () => {
                   selectAirport(airport.code);
                   toggleMobileMenu();
                 }}
-                className={`w-full text-left mb-3 p-4 rounded-lg flex items-center ${data.selectedAirport === airport.code ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                className={`w-full text-left mb-3 p-4 rounded-lg flex items-center ${data.selectedAirport === airport.code ? 'bg-indigo-100 text-indigo-700' : 'hover:bg-gray-100'}`}
               >
                 <MapPin className="mr-3 w-5 h-5" />
                 <div>
                   <div className="font-medium">{airport.name}</div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">{airport.code}</div>
+                  <div className="text-sm text-gray-500">{airport.code}</div>
                 </div>
               </button>
             ))}
@@ -342,150 +331,130 @@ const ModernFlightDelayDashboard = () => {
         </div>
       </div>
 
-      {/* Header with controls */}
-      <header className="sticky top-0 bg-white dark:bg-gray-800 shadow-md z-30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <Plane className="w-8 h-8 text-indigo-600 dark:text-indigo-400 mr-2" />
-              <h1 className="text-xl font-bold">Flight Delay Dashboard</h1>
-            </div>
-
-            <div className="hidden lg:flex items-center space-x-4">
-              <select
-                value={data.selectedMonth}
-                onChange={(e) => selectMonth(parseInt(e.target.value))}
-                className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
-              >
-                {MONTHS.map((month, index) => (
-                  <option key={index} value={index + 1}>{month}</option>
-                ))}
-              </select>
-
-              <select
-                value={data.selectedAirport}
-                onChange={(e) => selectAirport(e.target.value)}
-                className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
-              >
-                {filteredAirports.map(airport => (
-                  <option key={airport.code} value={airport.code}>
-                    {airport.code} - {airport.name}
-                  </option>
-                ))}
-              </select>
-
-              <button
-                onClick={toggleTheme}
-                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
-                aria-label="Toggle theme"
-              >
-                {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
-              </button>
-            </div>
-
-            <div className="lg:hidden flex items-center space-x-3">
-              <button
-                onClick={toggleTheme}
-                className="p-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
-                aria-label="Toggle theme"
-              >
-                {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
-              </button>
-
-              <button
-                onClick={toggleMobileMenu}
-                className="p-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
-                aria-label="Open menu"
-              >
-                <Layers className="w-6 h-6" />
-              </button>
-            </div>
+      {/* Header */}
+      <header className="py-12">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6">
+          {/* Author credit */}
+          <div className="text-center mb-8">
+            <span className="text-sm text-gray-500">By </span>
+            <a 
+              href="https://eshwarp.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-sm text-gray-500 hover:text-orange-500 transition-colors underline"
+            >
+              Eshwar
+            </a>
           </div>
 
-          {/* Mobile month selector */}
-          <div className="lg:hidden pb-4 flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <Calendar className="w-5 h-5 text-indigo-500" />
-              <select
-                value={data.selectedMonth}
-                onChange={(e) => selectMonth(parseInt(e.target.value))}
-                className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
-              >
-                {MONTHS.map((month, index) => (
-                  <option key={index} value={index + 1}>{month}</option>
-                ))}
-              </select>
+          {/* Main header content */}
+          <div className="flex flex-col items-center">
+            {/* Title with selections */}
+            <div className="text-center">
+              <h1 className="text-4xl font-bold mb-2 max-w-2xl">
+                How late is your flight from{' '}
+                <button
+                  onClick={toggleAirportDropdown}
+                  className="border-b-2 border-orange-500 hover:border-orange-600 transition-colors"
+                >
+                  {currentAirport.name}
+                  <span className="ml-1 text-orange-500">▼</span>
+                </button>
+                {' '}during{' '}
+                <button
+                  onClick={toggleMonthDropdown}
+                  className="border-b-2 border-orange-500 hover:border-orange-600 transition-colors"
+                >
+                  {MONTHS[data.selectedMonth - 1]}
+                  <span className="ml-1 text-orange-500">▼</span>
+                </button>
+              </h1>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Airport heading */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold">{currentAirport.name} ({data.selectedAirport})</h2>
-          <p className="text-gray-500 dark:text-gray-400 mt-2">Flight delay statistics for {MONTHS[data.selectedMonth - 1]} ({data.selectedMonth})</p>
+      {/* Dropdowns */}
+      {data.showAirportDropdown && (
+        <div className="fixed left-1/2 transform -translate-x-1/2 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+          <div className="p-2 max-h-96 overflow-y-auto">
+            {filteredAirports.map(airport => (
+              <button
+                key={airport.code}
+                onClick={() => selectAirport(airport.code)}
+                className="w-full text-left px-4 py-2 hover:bg-orange-50 rounded-md text-sm"
+              >
+                {airport.code} - {airport.name}
+              </button>
+            ))}
+          </div>
         </div>
+      )}
 
-        {/* Airport map */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-          {/* Best airline for the month - now on the left */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg order-1 lg:order-1 lg:col-span-2">
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-semibold flex items-center">
-                <Award className="w-5 h-5 mr-2 text-indigo-500" />
-                Best Airline for {MONTHS[data.selectedMonth - 1]}
-              </h3>
-            </div>
+      {data.showMonthDropdown && (
+        <div className="fixed left-1/2 transform -translate-x-1/2 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+          <div className="p-2">
+            {MONTHS.map((month, index) => (
+              <button
+                key={index}
+                onClick={() => selectMonth(index + 1)}
+                className="w-full text-left px-4 py-2 hover:bg-orange-50 rounded-md text-sm"
+              >
+                {month}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
+      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-6">
+        {/* Best airline for the month */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-100 mb-8">
+          <div className="p-6">
+            <h3 className="text-xl font-bold mb-4">Best Airline for {MONTHS[data.selectedMonth - 1]}</h3>
             {bestAirline ? (
-              <div className="p-4">
-                <div className="bg-gradient-to-br from-indigo-50 to-cyan-50 dark:from-indigo-900/30 dark:to-cyan-900/30 rounded-xl p-6 shadow-sm border border-indigo-100 dark:border-indigo-800">
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <span className="px-3 py-1 bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 rounded-full text-sm font-semibold">
-                        Best Choice
-                      </span>
-                      <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
-                        {formatAirlineName(bestAirline.AIRLINE)}
-                      </h3>
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-2xl font-bold text-orange-600">
+                      {formatAirlineName(bestAirline.AIRLINE)}
+                    </h3>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-500">Average Delay</p>
+                      <p className="text-xl font-bold text-orange-600">
+                        {bestAirline.AVG_DEP_DELAY.toFixed(2)} <span className="text-sm font-normal">min</span>
+                      </p>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                      <div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Average Delay</p>
-                        <p className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
-                          {bestAirline.AVG_DEP_DELAY.toFixed(2)} <span className="text-sm font-normal">min</span>
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Total Flights</p>
-                        <p className="text-xl font-bold text-gray-800 dark:text-gray-200">
-                          {bestAirline.TOTAL_FLIGHTS.toLocaleString()}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">On-Time Performance</p>
-                        <p className="text-xl font-bold text-cyan-600 dark:text-cyan-400">
-                          {(100 - (bestAirline.AVG_DEP_DELAY > 15 ? 100 : (bestAirline.AVG_DEP_DELAY/15)*100)).toFixed(1)}%
-                        </p>
-                      </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Total Flights</p>
+                      <p className="text-xl font-bold">
+                        {bestAirline.TOTAL_FLIGHTS.toLocaleString()}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">On-Time Performance</p>
+                      <p className="text-xl font-bold text-green-600">
+                        {(100 - (bestAirline.AVG_DEP_DELAY > 15 ? 100 : (bestAirline.AVG_DEP_DELAY/15)*100)).toFixed(1)}%
+                      </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-6">
-                  <h4 className="text-md font-medium mb-2">Other Top Airlines This Month:</h4>
+                <div>
+                  <h4 className="text-md font-medium mb-3">Other Top Airlines This Month:</h4>
                   <div className="space-y-2">
                     {monthlyBest.slice(1, 4).map((airline, index) => (
-                      <div key={airline.AIRLINE} className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                      <div key={airline.AIRLINE} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                         <div className="flex items-center">
-                          <span className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-xs font-medium">
+                          <span className="w-6 h-6 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-xs font-medium">
                             {index + 2}
                           </span>
                           <span className="ml-3 font-medium">{formatAirlineName(airline.AIRLINE)}</span>
                         </div>
                         <div className="text-right">
-                          <span className="font-medium">{airline.AVG_DEP_DELAY.toFixed(1)} min</span>
+                          <span className="font-medium text-orange-600">{airline.AVG_DEP_DELAY.toFixed(1)} min</span>
                         </div>
                       </div>
                     ))}
@@ -493,200 +462,196 @@ const ModernFlightDelayDashboard = () => {
                 </div>
               </div>
             ) : (
-              <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+              <div className="text-center text-gray-500">
                 No data available for this month
               </div>
             )}
           </div>
+        </div>
 
-          {/* Airport map - now on the right */}
-          <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden order-2 lg:order-2">
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-semibold flex items-center">
-                <MapPin className="w-5 h-5 mr-2 text-indigo-500" />
-                U.S. Airport Delay Map
-              </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Average flight delays across major airports
-              </p>
-            </div>
-
-            <div className="p-4 h-80 relative">
-              {/* US map background using react-simple-maps */}
-              <div className="absolute inset-0 z-0">
-                <ComposableMap
-                  projection="geoAlbersUsa"
-                  width={800}
-                  height={450}
-                  style={{ width: '100%', height: '100%' }}
-                >
-                  <Geographies geography="https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json">
-                    {({ geographies }) =>
-                      geographies.map(geo => (
-                        <Geography
-                          key={geo.rsmKey}
-                          geography={geo}
-                          fill={theme === 'dark' ? '#1e293b' : '#e5e7eb'}
-                          stroke={theme === 'dark' ? '#334155' : '#cbd5e1'}
-                          style={{
-                            default: { opacity: 0.7 },
-                            hover: { opacity: 0.9 },
-                            pressed: { opacity: 1 }
-                          }}
-                        />
-                      ))
-                    }
-                  </Geographies>
-                  {airportMap.map((airport) => {
-                    // Scale radius between 7 and 18 based on totalFlights
-                    const minR = 7, maxR = 18;
-                    const minFlights = Math.min(...airportMap.map(a => a.totalFlights));
-                    const maxFlights = Math.max(...airportMap.map(a => a.totalFlights));
-                    const r = maxFlights === minFlights
-                      ? minR
-                      : minR + (airport.totalFlights - minFlights) * (maxR - minR) / (maxFlights - minFlights);
-                    return (
-                      <Marker key={airport.code} coordinates={[airport.lng, airport.lat]}>
-                        <circle
-                          r={r}
-                          fill="#f97316"
-                          stroke="#fff"
-                          strokeWidth={airport.selected ? 3 : 1}
-                          opacity={airport.selected ? 1 : 0.85}
-                          onClick={() => selectAirport(airport.code)}
-                          style={{ cursor: 'pointer', filter: airport.selected ? 'drop-shadow(0 0 6px #f97316)' : 'none' }}
-                        />
-                        <text
-                          textAnchor="middle"
-                          y={-r - 4}
-                          style={{ fontFamily: 'inherit', fontSize: 12, fontWeight: 'bold', fill: theme === 'dark' ? '#fff' : '#1e293b', pointerEvents: 'none' }}
-                        >
-                          {airport.code}
-                        </text>
-                      </Marker>
-                    );
-                  })}
-                </ComposableMap>
-              </div>
-              {/* Removed ScatterChart overlay to ensure only one dot per airport */}
+        {/* Airport map */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-100 mb-8">
+          <div className="p-6">
+            <h3 className="text-xl font-bold mb-4">U.S. Airport Delay Map</h3>
+            <div className="h-80 relative">
+              <ComposableMap
+                projection="geoAlbersUsa"
+                width={800}
+                height={450}
+                style={{ width: '100%', height: '100%' }}
+              >
+                <Geographies geography="https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json">
+                  {({ geographies }) =>
+                    geographies.map(geo => (
+                      <Geography
+                        key={geo.rsmKey}
+                        geography={geo}
+                        fill="#f8fafc"
+                        stroke="#e2e8f0"
+                        style={{
+                          default: { opacity: 0.7 },
+                          hover: { opacity: 0.9 },
+                          pressed: { opacity: 1 }
+                        }}
+                      />
+                    ))
+                  }
+                </Geographies>
+                {airportMap.map((airport) => {
+                  const minR = 7, maxR = 18;
+                  const minFlights = Math.min(...airportMap.map(a => a.totalFlights));
+                  const maxFlights = Math.max(...airportMap.map(a => a.totalFlights));
+                  const r = maxFlights === minFlights
+                    ? minR
+                    : minR + (airport.totalFlights - minFlights) * (maxR - minR) / (maxFlights - minFlights);
+                  return (
+                    <Marker key={airport.code} coordinates={[airport.lng, airport.lat]}>
+                      <circle
+                        r={r}
+                        fill="#f97316"
+                        stroke="#fff"
+                        strokeWidth={airport.selected ? 3 : 1}
+                        opacity={airport.selected ? 1 : 0.85}
+                        onClick={() => selectAirport(airport.code)}
+                        style={{ cursor: 'pointer', filter: airport.selected ? 'drop-shadow(0 0 6px #f97316)' : 'none' }}
+                      />
+                      <text
+                        textAnchor="middle"
+                        y={-r - 4}
+                        style={{ fontFamily: 'inherit', fontSize: 12, fontWeight: 'bold', fill: '#1e293b', pointerEvents: 'none' }}
+                      >
+                        {airport.code}
+                      </text>
+                    </Marker>
+                  );
+                })}
+              </ComposableMap>
             </div>
           </div>
         </div>
 
-        {/* Performance statistics */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Top performing airlines */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg">
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-semibold flex items-center">
-                <ArrowDown className="w-5 h-5 mr-2 text-green-500" />
-                Lowest Average Delays
-              </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Airlines with the shortest average departure delays
-              </p>
-            </div>
-
-            <div className="p-4">
+        {/* Top performing airlines */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-100 mb-8">
+          <div className="p-6">
+            <h3 className="text-xl font-bold mb-4">Lowest Average Delays</h3>
+            <div className="space-y-3">
               {topAirlines.map((airline, index) => (
                 <div
                   key={airline.AIRLINE}
-                  className="flex items-center justify-between p-3 border-b border-gray-100 dark:border-gray-700 last:border-0"
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                 >
                   <div className="flex items-center">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400 font-bold text-sm mr-3">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-600 font-bold text-sm mr-3">
                       {index + 1}
                     </div>
                     <div>
                       <div className="font-medium">{formatAirlineName(airline.AIRLINE)}</div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">{airline.TOTAL_FLIGHTS.toLocaleString()} flights</div>
+                      <div className="text-sm text-gray-500">{airline.TOTAL_FLIGHTS.toLocaleString()} flights</div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-bold text-green-600 dark:text-green-400">{airline.AVG_DEP_DELAY.toFixed(1)} min</div>
+                    <div className="font-bold text-green-600">{airline.AVG_DEP_DELAY.toFixed(1)} min</div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
+        </div>
 
-          {/* Worst performing airlines */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg">
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-semibold flex items-center">
-                <ArrowUpDown className="w-5 h-5 mr-2 text-red-500" />
-                Highest Average Delays
-              </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Airlines with the longest average departure delays
-              </p>
-            </div>
-
-            <div className="p-4">
+        {/* Worst performing airlines */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-100 mb-8">
+          <div className="p-6">
+            <h3 className="text-xl font-bold mb-4">Highest Average Delays</h3>
+            <div className="space-y-3">
               {worstAirlines.map((airline, index) => (
                 <div
                   key={airline.AIRLINE}
-                  className="flex items-center justify-between p-3 border-b border-gray-100 dark:border-gray-700 last:border-0"
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                 >
                   <div className="flex items-center">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400 font-bold text-sm mr-3">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-red-100 text-red-600 font-bold text-sm mr-3">
                       {index + 1}
                     </div>
                     <div>
                       <div className="font-medium">{formatAirlineName(airline.AIRLINE)}</div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">{airline.TOTAL_FLIGHTS.toLocaleString()} flights</div>
+                      <div className="text-sm text-gray-500">{airline.TOTAL_FLIGHTS.toLocaleString()} flights</div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-bold text-red-600 dark:text-red-400">{airline.AVG_DEP_DELAY.toFixed(1)} min</div>
+                    <div className="font-bold text-red-600">{airline.AVG_DEP_DELAY.toFixed(1)} min</div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
+        </div>
 
-          {/* Monthly performance chart - IMPROVED */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg">
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-semibold flex items-center">
-                <Clock className="w-5 h-5 mr-2 text-indigo-500" />
-                Quarterly Delay Trends
-              </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Average delays by quarter for top carriers
-              </p>
+        {/* Fun Facts Section - Add after Highest Average Delays */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-100 mb-8">
+          <div className="p-6">
+            <h3 className="text-xl font-bold mb-4">Did You Know?</h3>
+            <div className="space-y-4">
+              {(() => {
+                const airport = data.airports[data.selectedAirport];
+                const monthData = airport.monthlyPerformance.filter(p => parseInt(p.MONTH) === data.selectedMonth);
+                const totalFlights = monthData.reduce((sum, p) => sum + p.TOTAL_FLIGHTS, 0);
+                const avgDelay = monthData.reduce((sum, p) => sum + p.AVG_DEP_DELAY * p.TOTAL_FLIGHTS, 0) / totalFlights;
+                const bestAirline = monthData.sort((a, b) => a.AVG_DEP_DELAY - b.AVG_DEP_DELAY)[0];
+                const worstAirline = monthData.sort((a, b) => b.AVG_DEP_DELAY - a.AVG_DEP_DELAY)[0];
+                const delayDiff = worstAirline.AVG_DEP_DELAY - bestAirline.AVG_DEP_DELAY;
+
+                return (
+                  <>
+                    <p className="text-gray-700">
+                      {formatAirlineName(bestAirline.AIRLINE)} operates {bestAirline.TOTAL_FLIGHTS.toLocaleString()} flights with an average delay of just {bestAirline.AVG_DEP_DELAY.toFixed(1)} minutes, making it the most reliable carrier at {currentAirport.name}.
+                    </p>
+                    <p className="text-gray-700">
+                      The difference between the best and worst performing airlines is {delayDiff.toFixed(1)} minutes, showing how much your choice of airline matters.
+                    </p>
+                    <p className="text-gray-700">
+                      In {MONTHS[data.selectedMonth - 1]}, {currentAirport.name} handled {totalFlights.toLocaleString()} flights with an average delay of {avgDelay.toFixed(1)} minutes.
+                    </p>
+                  </>
+                );
+              })()}
             </div>
+          </div>
+        </div>
 
-            <div className="p-4 h-72 lg:h-96">
+        {/* Quarterly performance chart */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-100 mb-8">
+          <div className="p-6">
+            <h3 className="text-xl font-bold mb-4">Quarterly Delay Trends</h3>
+            <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={monthlyTrends} margin={{ top: 20, right: 30, left: 10, bottom: 40 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#374151' : '#e0e0e0'} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis
                     dataKey="quarter"
-                    stroke={theme === 'dark' ? '#9ca3af' : '#718096'}
+                    stroke="#64748b"
                     tick={{ fontSize: 12 }}
                     dy={10}
                   />
                   <YAxis
-                    stroke={theme === 'dark' ? '#9ca3af' : '#718096'}
+                    stroke="#64748b"
                     label={{ 
                       value: 'Avg Delay (min)', 
                       angle: -90, 
                       position: 'insideLeft', 
                       style: { textAnchor: 'middle', fontSize: 12 }, 
-                      fill: theme === 'dark' ? '#9ca3af' : '#718096',
+                      fill: '#64748b',
                       dy: -10
                     }}
                   />
                   <Tooltip
                     contentStyle={{ 
-                      backgroundColor: theme === 'dark' ? '#1f2937' : '#ffffff', 
-                      borderColor: theme === 'dark' ? '#374151' : '#e2e8f0',
+                      backgroundColor: '#ffffff', 
+                      borderColor: '#e2e8f0',
                       padding: '12px',
                       borderRadius: '8px',
                       boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
                     }}
-                    itemStyle={{ color: theme === 'dark' ? '#e2e8f0' : '#1a202c' }}
+                    itemStyle={{ color: '#1a202c' }}
                     labelStyle={{ fontWeight: 'bold', marginBottom: '8px' }}
                     formatter={(value) => [`${value?.toFixed(1) || 'N/A'} min`, 'Avg Delay']}
                     labelFormatter={(label) => `Quarter ${label}`}
@@ -698,7 +663,7 @@ const ModernFlightDelayDashboard = () => {
                       dataKey={airline}
                       name={formatAirlineName(airline)}
                       stroke={COLORS[index % COLORS.length]}
-                      strokeWidth={3}
+                      strokeWidth={2}
                       dot={{ r: 4, strokeWidth: 2 }}
                       activeDot={{ r: 6, stroke: COLORS[index % COLORS.length], strokeWidth: 2 }}
                       animationDuration={1500}
@@ -707,12 +672,11 @@ const ModernFlightDelayDashboard = () => {
                 </LineChart>
               </ResponsiveContainer>
             </div>
-
             {/* Custom Legend */}
-            <div className="px-4 pb-4">
+            <div className="mt-4">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {topTrendAirlines.map((airline, index) => (
-                  <div key={airline} className="flex items-center space-x-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+                  <div key={airline} className="flex items-center space-x-2 p-2 rounded-lg bg-gray-50">
                     <div 
                       className="w-3 h-3 rounded-full" 
                       style={{ backgroundColor: COLORS[index % COLORS.length] }}
@@ -724,14 +688,11 @@ const ModernFlightDelayDashboard = () => {
             </div>
           </div>
         </div>
-
-        {/* Monthly airline comparison and Flight Volume by Airline - REPLACING pie chart with horizontal bar chart */}
-        {/* Removed as per user request */}
       </main>
 
-      <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-center text-gray-500 dark:text-gray-400 text-sm">
+      <footer className="py-6 border-t border-gray-100">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6">
+          <p className="text-center text-sm text-gray-500">
             Flight Delay Dashboard | Data showing airline departure performance across major US airports
           </p>
         </div>
